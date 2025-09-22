@@ -1,0 +1,15 @@
+# extract body string
+POST http://localhost:8080/mirror_body_string
+Content-Type: text/plain
+
+Hello, this is the text body!
+###
+
+# extract body json
+POST http://localhost:8080/mirror_body_json
+Content-Type: application/json
+
+{
+    "message": "Hello, hit is the json body!"
+}
+###

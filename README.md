@@ -2,6 +2,10 @@
 
 ## Setup
 
+Run `.bash` files.
+
+## Run
+
 ```bash
-yarn add -D prettier prettier-plugin-rust prettier-plugin-toml prettier-plugin-sql
+cargo watch -x run
 ```
