@@ -1,7 +1,7 @@
 use axum::Json;
 use serde::{Deserialize, Serialize};
 
-pub async fn mirror_body_string(body: String) -> String {
+pub async fn mirror_body_string_handler(body: String) -> String {
     body
 }
 
@@ -15,7 +15,9 @@ pub struct MirrorJsonResponse {
     message: String,
 }
 
-pub async fn mirror_body_json(Json(body): Json<MirrorJsonBody>) -> Json<MirrorJsonResponse> {
+pub async fn mirror_body_json_handler(
+    Json(body): Json<MirrorJsonBody>,
+) -> Json<MirrorJsonResponse> {
     Json(MirrorJsonResponse {
         message: body.message,
     })
