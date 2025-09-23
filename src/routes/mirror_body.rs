@@ -29,9 +29,9 @@ pub async fn mirror_user_agent_handler(TypedHeader(user_agent): TypedHeader<User
 }
 
 pub async fn mirror_custom_header_handler(headers: HeaderMap) -> String {
-    let message_value = headers.get("x-message").unwrap(); // &HeaderValue
-    let message_result = message_value.to_str(); // Result<&str, ToStrError>
-    let message = message_result.unwrap().to_string(); // String
+    let message = headers.get("x-message").unwrap(); // &HeaderValue
+    let message = message.to_str(); // Result<&str, ToStrError>
+    let message = message.unwrap().to_string(); // String
 
     message
 }

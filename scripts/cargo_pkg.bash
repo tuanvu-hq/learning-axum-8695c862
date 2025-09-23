@@ -1,5 +1,6 @@
 cargo add \
 axum \
 axum-extra -F typed-headers \
+serde -F derive \
 tokio -F macros,rt-multi-thread \
-serde -F derive
+tower-http -F cors

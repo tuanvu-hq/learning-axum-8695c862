@@ -1,0 +1,9 @@
+# middleware message (shared data)
+GET http://localhost:8080/middleware_message
+### 
+
+# custom middleware
+GET http://localhost:8080/middleware_custom_header
+User-Agent: MyCustomClient/1.0
+message: MyCustomMessage/1.0
+### 
