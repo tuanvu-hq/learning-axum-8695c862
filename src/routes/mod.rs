@@ -2,6 +2,7 @@ mod custom_middleware;
 mod hello_world;
 mod mirror_body;
 mod params;
+mod status_codes;
 
 use crate::routes::{
     custom_middleware::{
@@ -13,6 +14,7 @@ use crate::routes::{
         mirror_user_agent_handler,
     },
     params::{path_params_handler, query_params_handler},
+    status_codes::{always_error_handler, status_code_201_handler},
 };
 
 use axum::{
@@ -53,4 +55,6 @@ pub fn create_routes() -> Router {
         .route("/middleware_message", get(middleware_message_handler))
         .layer(Extension(shared_data))
         .layer(cors)
+        .route("/status_codes_always_error", get(always_error_handler))
+        .route("/status_codes_return_201", post(status_code_201_handler))
 }

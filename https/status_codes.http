@@ -1,0 +1,7 @@
+# always error
+GET http://localhost:8080/status_codes_always_error
+###
+
+# created / 201
+POST http://localhost:8080/status_codes_return_201
+###
