@@ -13,3 +13,13 @@ Content-Type: application/json
     "message": "Hello, hit is the json body!"
 }
 ###
+
+# extract user-agent from header
+GET http://localhost:8080/mirror_user_agent
+User-Agent: MyCustomClient/1.0
+###
+
+# extract custom header
+GET http://localhost:8080/mirror_custom_header
+x-message: MyCustomMessage/1.0
+###

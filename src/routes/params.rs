@@ -1,5 +1,12 @@
-use axum::{Json, extract::Query};
+use axum::{
+    Json,
+    extract::{Path, Query},
+};
 use serde::{Deserialize, Serialize};
+
+pub async fn path_params_handler(Path(id): Path<i32>) -> String {
+    id.to_string()
+}
 
 #[derive(Deserialize, Serialize)]
 pub struct QueryParams {

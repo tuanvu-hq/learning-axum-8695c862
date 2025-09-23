@@ -1,1 +1,0 @@
-GET http://localhost:8080/query_params?id=18&message=Hello World
