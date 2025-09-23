@@ -1,3 +1,4 @@
+mod custom_json;
 mod custom_middleware;
 mod hello_world;
 mod mirror_body;
@@ -5,6 +6,7 @@ mod params;
 mod status_codes;
 
 use crate::routes::{
+    custom_json::get_json_handler,
     custom_middleware::{
         middleware_custom_header_extractor, middleware_custom_header_handler,
         middleware_message_handler,
@@ -57,4 +59,5 @@ pub fn create_routes() -> Router {
         .layer(cors)
         .route("/status_codes_always_error", get(always_error_handler))
         .route("/status_codes_return_201", post(status_code_201_handler))
+        .route("/get_json", get(get_json_handler))
 }
