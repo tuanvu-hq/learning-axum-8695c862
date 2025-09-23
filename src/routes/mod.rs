@@ -6,7 +6,7 @@ mod params;
 mod status_codes;
 
 use crate::routes::{
-    custom_json::get_json_handler,
+    custom_json::{json_extractor_handler, json_get_one_handler, json_validate_handler},
     custom_middleware::{
         middleware_custom_header_extractor, middleware_custom_header_handler,
         middleware_message_handler,
@@ -59,5 +59,7 @@ pub fn create_routes() -> Router {
         .layer(cors)
         .route("/status_codes_always_error", get(always_error_handler))
         .route("/status_codes_return_201", post(status_code_201_handler))
-        .route("/get_json", get(get_json_handler))
+        .route("/json_get_one", get(json_get_one_handler))
+        .route("/json_validate", post(json_validate_handler))
+        .route("/json_extractor", post(json_extractor_handler))
 }

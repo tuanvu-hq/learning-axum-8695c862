@@ -1,3 +1,44 @@
 # get JSON
-GET http://localhost:8080/get_json
+GET http://localhost:8080/json_get_one
+###
+
+# validate JSON - OK
+POST http://localhost:8080/json_validate
+Content-Type: application/json
+
+{
+    "username": "user-1",
+    "password": "123456"
+}
+###
+
+
+# validate JSON - OK
+POST http://localhost:8080/json_validate
+Content-Type: application/json
+
+{
+    "username": "user-1"
+}
+###
+
+
+# extract JSON - OK
+POST http://localhost:8080/json_extractor
+Content-Type: application/json
+
+{
+    "username": "user-1@email.com",
+    "password": "12345678"    
+}
+###
+
+# extract JSON - NOT OK
+POST http://localhost:8080/json_extractor
+Content-Type: application/json
+
+{
+    "username": "user-1",
+    "password": "123456"    
+}
 ###
