@@ -1,11 +1,11 @@
 mod example;
 mod tasks;
 
-use axum::{Extension, Router, http::Method, routing::post};
+use axum::{Extension, Router, http::Method};
 use sea_orm::DatabaseConnection;
 use tower_http::cors::{Any, CorsLayer};
 
-use crate::routes::{example::create_example_routes, tasks::create_task_handler};
+use crate::routes::{example::create_example_routes, tasks::create_task_routes};
 
 pub fn create_routes(db: DatabaseConnection) -> Router {
     let cors = CorsLayer::new()
@@ -17,8 +17,4 @@ pub fn create_routes(db: DatabaseConnection) -> Router {
         .layer(Extension(db))
         .nest("/example", create_example_routes())
         .layer(cors)
-}
-
-fn create_task_routes() -> Router {
-    Router::new().route("/tasks", post(create_task_handler))
 }

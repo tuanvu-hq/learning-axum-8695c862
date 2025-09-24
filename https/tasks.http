@@ -1,4 +1,4 @@
-# create Task
+# create task
 POST http://localhost:8080/api/tasks
 Content-Type: application/json
 
@@ -7,4 +7,12 @@ Content-Type: application/json
     "title": "This is a title",
     "description": "This is a description"    
 }
+###
+
+# get one task
+GET http://localhost:8080/api/tasks/4
+###
+
+# get all task
+GET http://localhost:8080/api/tasks
 ###

@@ -3,25 +3,27 @@ use axum::{
     routing::{get, post},
 };
 
+use crate::routes::example::{
+    custom_json::{json_extractor_handler, json_get_one_handler, json_validate_handler},
+    custom_middleware::{
+        middleware_custom_header_extractor, middleware_custom_header_handler,
+        middleware_message_handler,
+    },
+    hello_world::hello_world_handler,
+    mirror_body::{
+        mirror_body_json_handler, mirror_body_string_handler, mirror_custom_header_handler,
+        mirror_user_agent_handler,
+    },
+    params::{path_params_handler, query_params_handler},
+    status_codes::{always_error_handler, status_code_201_handler},
+};
+
 mod custom_json;
 mod custom_middleware;
 mod hello_world;
 mod mirror_body;
 mod params;
 mod status_codes;
-
-use custom_json::{json_extractor_handler, json_get_one_handler, json_validate_handler};
-use custom_middleware::{
-    middleware_custom_header_extractor, middleware_custom_header_handler,
-    middleware_message_handler,
-};
-use hello_world::hello_world_handler;
-use mirror_body::{
-    mirror_body_json_handler, mirror_body_string_handler, mirror_custom_header_handler,
-    mirror_user_agent_handler,
-};
-use params::{path_params_handler, query_params_handler};
-use status_codes::{always_error_handler, status_code_201_handler};
 
 #[derive(Clone)]
 pub struct SharedData {

@@ -1,4 +1,4 @@
-use axum::{Extension, Json};
+use axum::{Extension, Json, http::StatusCode};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, DatabaseConnection};
 use serde::Deserialize;
 
@@ -14,14 +14,18 @@ pub struct RequestTask {
 pub async fn create_task_handler(
     Extension(db): Extension<DatabaseConnection>,
     Json(task): Json<RequestTask>,
-) {
+) -> Result<StatusCode, StatusCode> {
     let new_task = tasks::ActiveModel {
         priority: Set(task.priority),
         title: Set(task.title),
         description: Set(task.description),
         ..Default::default()
     };
-    let result = new_task.save(&db).await.unwrap();
 
-    dbg!(result);
+    new_task
+        .save(&db)
+        .await
+        .map_err(|_error| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(StatusCode::CREATED)
 }
