@@ -2,7 +2,7 @@ use axum::{
     Extension, body::Body, extract::Request, http::StatusCode, middleware::Next, response::Response,
 };
 
-use crate::routes::SharedData;
+use super::SharedData;
 
 pub async fn middleware_message_handler(Extension(shared_data): Extension<SharedData>) -> String {
     shared_data.message

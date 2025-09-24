@@ -1,0 +1,10 @@
+# create Task
+POST http://localhost:8080/api/tasks
+Content-Type: application/json
+
+{
+    "priority": "A",
+    "title": "This is a title",
+    "description": "This is a description"    
+}
+###

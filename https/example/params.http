@@ -1,0 +1,8 @@
+# path params
+GET http://localhost:8080/example/path_variables/18
+###
+
+
+# query params
+GET http://localhost:8080/example/query_params?id=18&message=Hello World
+###

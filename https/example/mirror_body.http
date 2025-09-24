@@ -1,12 +1,12 @@
 # extract body string
-POST http://localhost:8080/mirror_body_string
+POST http://localhost:8080/example/mirror_body_string
 Content-Type: text/plain
 
 Hello, this is the text body!
 ###
 
 # extract body json
-POST http://localhost:8080/mirror_body_json
+POST http://localhost:8080/example/mirror_body_json
 Content-Type: application/json
 
 {
@@ -15,11 +15,11 @@ Content-Type: application/json
 ###
 
 # extract user-agent from header
-GET http://localhost:8080/mirror_user_agent
+GET http://localhost:8080/example/mirror_user_agent
 User-Agent: MyCustomClient/1.0
 ###
 
 # extract custom header
-GET http://localhost:8080/mirror_custom_header
+GET http://localhost:8080/example/mirror_custom_header
 x-message: MyCustomMessage/1.0
 ###

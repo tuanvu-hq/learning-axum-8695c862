@@ -1,9 +1,9 @@
 # get JSON
-GET http://localhost:8080/json_get_one
+GET http://localhost:8080/example/json_get_one
 ###
 
 # validate JSON - OK
-POST http://localhost:8080/json_validate
+POST http://localhost:8080/example/json_validate
 Content-Type: application/json
 
 {
@@ -14,7 +14,7 @@ Content-Type: application/json
 
 
 # validate JSON - OK
-POST http://localhost:8080/json_validate
+POST http://localhost:8080/example/json_validate
 Content-Type: application/json
 
 {
@@ -24,7 +24,7 @@ Content-Type: application/json
 
 
 # extract JSON - OK
-POST http://localhost:8080/json_extractor
+POST http://localhost:8080/example/json_extractor
 Content-Type: application/json
 
 {
@@ -34,7 +34,7 @@ Content-Type: application/json
 ###
 
 # extract JSON - NOT OK
-POST http://localhost:8080/json_extractor
+POST http://localhost:8080/example/json_extractor
 Content-Type: application/json
 
 {
