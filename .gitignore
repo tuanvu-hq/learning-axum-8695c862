@@ -4,3 +4,6 @@
 
 # Custom
 .vscode
+
+# ENV
+.env

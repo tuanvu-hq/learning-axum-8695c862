@@ -26,6 +26,7 @@ use axum::{
     routing::{get, post},
 };
 use hello_world::hello_world;
+use sea_orm::DatabaseConnection;
 use tower_http::cors::{Any, CorsLayer};
 
 #[derive(Clone)]
@@ -33,7 +34,7 @@ pub struct SharedData {
     message: String,
 }
 
-pub fn create_routes() -> Router {
+pub fn create_routes(db: DatabaseConnection) -> Router {
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST])
         .allow_origin(Any);
@@ -56,6 +57,7 @@ pub fn create_routes() -> Router {
         .route("/mirror_custom_header", get(mirror_custom_header_handler))
         .route("/middleware_message", get(middleware_message_handler))
         .layer(Extension(shared_data))
+        .layer(Extension(db))
         .layer(cors)
         .route("/status_codes_always_error", get(always_error_handler))
         .route("/status_codes_return_201", post(status_code_201_handler))
