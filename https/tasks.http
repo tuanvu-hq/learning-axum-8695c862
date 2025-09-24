@@ -16,3 +16,19 @@ GET http://localhost:8080/api/tasks/4
 # get all task
 GET http://localhost:8080/api/tasks
 ###
+
+# get all task - filtered A
+GET http://localhost:8080/api/tasks?priority=A
+###
+
+# get all task - filtered B
+GET http://localhost:8080/api/tasks?priority=B
+###
+
+# get all task - filtered C
+GET http://localhost:8080/api/tasks?priority=C
+###
+
+# get all task - filtered empty
+GET http://localhost:8080/api/tasks?priority=
+###
