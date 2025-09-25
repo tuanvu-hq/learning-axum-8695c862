@@ -16,7 +16,7 @@ pub struct ResponseTask {
     description: Option<String>,
 }
 
-pub async fn get_one_task_handler(
+pub async fn get_one_task(
     Path(id): Path<i32>,
     Extension(db): Extension<DatabaseConnection>,
 ) -> Result<Json<ResponseTask>, StatusCode> {
@@ -39,24 +39,27 @@ pub struct QueryParams {
     priority: Option<String>,
 }
 
-pub async fn get_all_tasks_handler(
+pub async fn get_all_tasks(
     Query(params): Query<QueryParams>,
     Extension(db): Extension<DatabaseConnection>,
 ) -> Result<Json<Vec<ResponseTask>>, StatusCode> {
     let mut priority_filter = Condition::all();
-    if let Some(priority) = params.priority {
-        priority_filter = priority_filter.add(if priority.is_empty() {
-            tasks::Column::Priority.is_null()
-        } else {
-            tasks::Column::Priority.eq(priority)
-        });
+
+    match params.priority {
+        Some(priority) if priority.is_empty() => {
+            priority_filter = priority_filter.add(tasks::Column::Priority.is_null());
+        }
+        Some(priority) => {
+            priority_filter = priority_filter.add(tasks::Column::Priority.eq(priority));
+        }
+        None => {}
     }
 
     let tasks = tasks::Entity::find()
         .filter(priority_filter)
         .all(&db)
         .await
-        .map_err(|_error| StatusCode::INTERNAL_SERVER_ERROR)?
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .into_iter()
         .map(|t| ResponseTask {
             id: t.id,

@@ -32,3 +32,33 @@ GET http://localhost:8080/api/tasks?priority=C
 # get all task - filtered empty
 GET http://localhost:8080/api/tasks?priority=
 ###
+
+# atomic update one task
+PUT http://localhost:8080/api/tasks/4
+Content-Type: application/json
+
+{
+  "priority": "A",
+  "title": "This is a title",
+  "description": "This is a description"
+}
+###
+
+# atomic update one task
+PUT http://localhost:8080/api/tasks/4
+Content-Type: application/json
+
+{
+  "priority": "A",
+  "title": "This is a title"
+}
+###
+
+# partial update one task
+PATCH http://localhost:8080/api/tasks/4
+Content-Type: application/json
+
+{
+  "priority": "B"
+}
+###

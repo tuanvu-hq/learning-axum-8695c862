@@ -11,7 +11,7 @@ pub struct RequestTask {
     description: Option<String>,
 }
 
-pub async fn create_task_handler(
+pub async fn create_task(
     Extension(db): Extension<DatabaseConnection>,
     Json(task): Json<RequestTask>,
 ) -> Result<StatusCode, StatusCode> {
@@ -25,7 +25,7 @@ pub async fn create_task_handler(
     new_task
         .save(&db)
         .await
-        .map_err(|_error| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(StatusCode::CREATED)
 }
