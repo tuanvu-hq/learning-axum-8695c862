@@ -3,6 +3,7 @@ use axum::{
     extract::{Path, Query},
     http::StatusCode,
 };
+use chrono::{DateTime, FixedOffset};
 use sea_orm::{ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 
@@ -14,13 +15,15 @@ pub struct ResponseTask {
     priority: Option<String>,
     title: String,
     description: Option<String>,
+    deleted_at: Option<DateTime<FixedOffset>>,
 }
 
-pub async fn get_one_task(
+pub async fn get_task(
     Path(id): Path<i32>,
     Extension(db): Extension<DatabaseConnection>,
 ) -> Result<Json<ResponseTask>, StatusCode> {
     let task = tasks::Entity::find_by_id(id)
+        .filter(tasks::Column::DeletedAt.is_null())
         .one(&db)
         .await
         .map_err(|_error| StatusCode::INTERNAL_SERVER_ERROR)?
@@ -31,6 +34,7 @@ pub async fn get_one_task(
         priority: task.priority,
         title: task.title,
         description: task.description,
+        deleted_at: task.deleted_at,
     }))
 }
 
@@ -39,7 +43,7 @@ pub struct QueryParams {
     priority: Option<String>,
 }
 
-pub async fn get_all_tasks(
+pub async fn get_tasks(
     Query(params): Query<QueryParams>,
     Extension(db): Extension<DatabaseConnection>,
 ) -> Result<Json<Vec<ResponseTask>>, StatusCode> {
@@ -57,15 +61,17 @@ pub async fn get_all_tasks(
 
     let tasks = tasks::Entity::find()
         .filter(priority_filter)
+        .filter(tasks::Column::DeletedAt.is_null())
         .all(&db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .into_iter()
-        .map(|t| ResponseTask {
-            id: t.id,
-            priority: t.priority,
-            title: t.title,
-            description: t.description,
+        .map(|item| ResponseTask {
+            id: item.id,
+            priority: item.priority,
+            title: item.title,
+            description: item.description,
+            deleted_at: item.deleted_at,
         })
         .collect();
 

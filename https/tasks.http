@@ -13,7 +13,7 @@ Content-Type: application/json
 GET http://localhost:8080/api/tasks/4
 ###
 
-# get all task
+# get all tasks
 GET http://localhost:8080/api/tasks
 ###
 
@@ -61,4 +61,16 @@ Content-Type: application/json
 {
   "priority": "B"
 }
+###
+
+# delete task - OK
+DELETE  http://localhost:8080/api/tasks/4
+###
+
+# delete task - NOT OK
+DELETE  http://localhost:8080/api/tasks/444
+###
+
+# soft delete task - OK
+DELETE  http://localhost:8080/api/tasks/5?soft=true
 ###

@@ -77,7 +77,7 @@ pub async fn partial_update_task(
     Extension(db): Extension<DatabaseConnection>,
     Json(task): Json<RequestPartialTask>,
 ) -> Result<(), StatusCode> {
-    let mut db_task = tasks::Entity::find_by_id(id)
+    let mut update_task = tasks::Entity::find_by_id(id)
         .one(&db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
@@ -85,28 +85,28 @@ pub async fn partial_update_task(
         .into_active_model();
 
     if let Some(priority) = task.priority {
-        db_task.priority = Set(priority);
+        update_task.priority = Set(priority);
     }
     if let Some(title) = task.title {
-        db_task.title = Set(title);
+        update_task.title = Set(title);
     }
     if let Some(completed_at) = task.completed_at {
-        db_task.completed_at = Set(completed_at);
+        update_task.completed_at = Set(completed_at);
     }
     if let Some(description) = task.description {
-        db_task.description = Set(description);
+        update_task.description = Set(description);
     }
     if let Some(deleted_at) = task.deleted_at {
-        db_task.deleted_at = Set(deleted_at);
+        update_task.deleted_at = Set(deleted_at);
     }
     if let Some(user_id) = task.user_id {
-        db_task.user_id = Set(user_id);
+        update_task.user_id = Set(user_id);
     }
     if let Some(is_default) = task.is_default {
-        db_task.is_default = Set(is_default);
+        update_task.is_default = Set(is_default);
     }
 
-    db_task
+    update_task
         .update(&db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;

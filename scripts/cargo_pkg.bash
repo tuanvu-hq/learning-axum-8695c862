@@ -1,6 +1,7 @@
 cargo add \
 axum -F macros \
 axum-extra -F typed-headers \
+chrono \
 dotenvy \
 dotenvy_macro \
 sea-orm -F sqlx-postgres,runtime-tokio-rustls \
