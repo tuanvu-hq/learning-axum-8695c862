@@ -17,3 +17,8 @@ Content-Type: application/json
     "password": "bobo123456"
 }
 ###
+
+# logout user
+POST http://localhost:8080/logout
+Authorization: Bearer as54dad465aff
+###

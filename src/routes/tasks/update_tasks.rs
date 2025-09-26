@@ -81,7 +81,7 @@ pub async fn partial_update_task(
         .one(&db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or_else(|| StatusCode::NOT_FOUND)?
+        .ok_or(StatusCode::NOT_FOUND)?
         .into_active_model();
 
     if let Some(priority) = task.priority {

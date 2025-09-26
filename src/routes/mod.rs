@@ -16,8 +16,8 @@ pub fn create_routes(db: DatabaseConnection) -> Router {
         .allow_origin(Any);
 
     Router::new()
-        .nest("/api", create_task_routes())
         .nest("/example", create_example_routes())
+        .nest("/api", create_task_routes())
         .merge(create_auth_routes())
         .layer(Extension(db))
         .layer(cors)

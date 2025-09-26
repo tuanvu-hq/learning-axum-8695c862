@@ -23,7 +23,7 @@ use crate::database::tasks;
 //     //     .one(&db)
 //     //     .await
 //     //     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-//     //     .ok_or_else(|| StatusCode::INTERNAL_SERVER_ERROR)?
+//     //     .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?
 //     //     .into_active_model();
 
 //     // tasks::Entity::delete(task)
@@ -63,7 +63,7 @@ pub async fn delete_task(
             .one(&db)
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-            .ok_or_else(|| StatusCode::NOT_FOUND)?
+            .ok_or(StatusCode::NOT_FOUND)?
             .into_active_model();
         let now = chrono::Utc::now();
 

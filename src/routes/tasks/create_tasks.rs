@@ -28,7 +28,7 @@ pub async fn create_task(
         .one(&db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or_else(|| StatusCode::UNAUTHORIZED)?;
+        .ok_or(StatusCode::UNAUTHORIZED)?;
     let new_task = tasks::ActiveModel {
         priority: Set(task.priority),
         title: Set(task.title),

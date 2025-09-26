@@ -23,7 +23,7 @@ pub async fn middleware_custom_header_extractor(
 ) -> Result<Response, StatusCode> {
     let headers = req.headers(); // &HeaderMap
     let message = headers.get("message"); // Option<&HeaderValue>
-    let message = message.ok_or_else(|| StatusCode::BAD_REQUEST); // Result<&HeaderValue, StatusCode>
+    let message = message.ok_or(StatusCode::BAD_REQUEST); // Result<&HeaderValue, StatusCode>
     let message = message?; // &HeaderValue
     let message = message.to_str().map_err(|_err| StatusCode::BAD_REQUEST); // Result<&str, StatusCode>
     let message = message?.to_owned(); // String
