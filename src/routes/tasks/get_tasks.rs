@@ -16,6 +16,7 @@ pub struct ResponseTask {
     title: String,
     description: Option<String>,
     deleted_at: Option<DateTime<FixedOffset>>,
+    user_id: Option<i32>,
 }
 
 pub async fn get_task(
@@ -35,6 +36,7 @@ pub async fn get_task(
         title: task.title,
         description: task.description,
         deleted_at: task.deleted_at,
+        user_id: task.user_id,
     }))
 }
 
@@ -72,6 +74,7 @@ pub async fn get_tasks(
             title: item.title,
             description: item.description,
             deleted_at: item.deleted_at,
+            user_id: item.user_id,
         })
         .collect();
 

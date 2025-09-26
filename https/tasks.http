@@ -1,6 +1,7 @@
 # create task
 POST http://localhost:8080/api/tasks
 Content-Type: application/json
+Authorization: Bearer as54dad465aff
 
 {
     "priority": "A",
