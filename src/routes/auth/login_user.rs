@@ -31,6 +31,11 @@ pub async fn login(
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    if !verify_password(user.password, &login_user.password)? {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
     let new_token = "as54dad465aff".to_owned();
     let mut user = login_user.into_active_model();
 
@@ -46,4 +51,8 @@ pub async fn login(
         username: login_user.username.unwrap(),
         token: login_user.token.unwrap().unwrap(),
     }))
+}
+
+fn verify_password(password: String, hash: &str) -> Result<bool, StatusCode> {
+    bcrypt::verify(password, hash).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
 }
