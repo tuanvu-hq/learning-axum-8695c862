@@ -1,82 +1,55 @@
+use crate::common::app_error::AppError;
+use crate::database::users::{self, Model};
+use crate::queries::task_queries;
+use crate::routes::tasks::ResponseDataTasks;
+use axum::Json;
 use axum::{
-    Extension, Json,
-    extract::{Path, Query},
-    http::StatusCode,
+    Extension,
+    extract::{Path, State},
 };
-use chrono::{DateTime, FixedOffset};
-use sea_orm::{ColumnTrait, Condition, DatabaseConnection, EntityTrait, QueryFilter};
-use serde::{Deserialize, Serialize};
+use sea_orm::DatabaseConnection;
 
-use crate::database::tasks;
+use super::{ResponseDataTask, ResponseTask};
 
-#[derive(Serialize)]
-pub struct ResponseTask {
-    id: i32,
-    priority: Option<String>,
-    title: String,
-    description: Option<String>,
-    deleted_at: Option<DateTime<FixedOffset>>,
-    user_id: Option<i32>,
+pub async fn get_all_tasks(
+    State(db): State<DatabaseConnection>,
+    Extension(user): Extension<users::Model>,
+) -> Result<Json<ResponseDataTasks>, AppError> {
+    let tasks = task_queries::get_all_tasks(&db, user.id, false)
+        .await?
+        .into_iter()
+        .map(|db_task| ResponseTask {
+            id: db_task.id,
+            title: db_task.title,
+            description: db_task.description,
+            priority: db_task.priority,
+            completed_at: db_task
+                .completed_at
+                .map(|completed_at| completed_at.to_string()),
+        })
+        .collect::<Vec<ResponseTask>>();
+
+    Ok(Json(ResponseDataTasks { data: tasks }))
 }
 
-pub async fn get_task(
-    Path(id): Path<i32>,
-    Extension(db): Extension<DatabaseConnection>,
-) -> Result<Json<ResponseTask>, StatusCode> {
-    let task = tasks::Entity::find_by_id(id)
-        .filter(tasks::Column::DeletedAt.is_null())
-        .one(&db)
-        .await
-        .map_err(|_error| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
+pub async fn get_one_task(
+    Path(task_id): Path<i32>,
+    State(db): State<DatabaseConnection>,
+    Extension(user): Extension<Model>,
+) -> Result<Json<ResponseDataTask>, AppError> {
+    let task = task_queries::find_task_by_id(&db, task_id, user.id).await?;
 
-    Ok(Json(ResponseTask {
+    let response_task = ResponseTask {
         id: task.id,
-        priority: task.priority,
         title: task.title,
         description: task.description,
-        deleted_at: task.deleted_at,
-        user_id: task.user_id,
+        priority: task.priority,
+        completed_at: task
+            .completed_at
+            .map(|completed_at| completed_at.to_string()),
+    };
+
+    Ok(Json(ResponseDataTask {
+        data: response_task,
     }))
-}
-
-#[derive(Deserialize)]
-pub struct QueryParams {
-    priority: Option<String>,
-}
-
-pub async fn get_tasks(
-    Query(params): Query<QueryParams>,
-    Extension(db): Extension<DatabaseConnection>,
-) -> Result<Json<Vec<ResponseTask>>, StatusCode> {
-    let mut priority_filter = Condition::all();
-
-    match params.priority {
-        Some(priority) if priority.is_empty() => {
-            priority_filter = priority_filter.add(tasks::Column::Priority.is_null());
-        }
-        Some(priority) => {
-            priority_filter = priority_filter.add(tasks::Column::Priority.eq(priority));
-        }
-        None => {}
-    }
-
-    let tasks = tasks::Entity::find()
-        .filter(priority_filter)
-        .filter(tasks::Column::DeletedAt.is_null())
-        .all(&db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .into_iter()
-        .map(|item| ResponseTask {
-            id: item.id,
-            priority: item.priority,
-            title: item.title,
-            description: item.description,
-            deleted_at: item.deleted_at,
-            user_id: item.user_id,
-        })
-        .collect();
-
-    Ok(Json(tasks))
 }

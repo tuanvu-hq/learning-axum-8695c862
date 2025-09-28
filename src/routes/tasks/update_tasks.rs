@@ -1,115 +1,73 @@
-use axum::{Extension, Json, extract::Path, http::StatusCode};
-use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{Set, Unchanged},
-    DatabaseConnection, EntityTrait, IntoActiveModel,
-    prelude::DateTimeWithTimeZone,
+use crate::{common::app_error::AppError, database::users::Model, queries::task_queries};
+use axum::{
+    Extension, Json,
+    extract::{Path, State},
 };
-use serde::Deserialize;
+use chrono::Utc;
+use sea_orm::{DatabaseConnection, IntoActiveModel, Set};
 
-use crate::database::tasks;
+use super::RequestTask;
 
-#[allow(dead_code)]
-#[derive(Deserialize)]
-pub struct RequestAtomicTask {
-    pub id: Option<i32>,
-    pub priority: Option<String>,
-    pub title: String,
-    pub completed_at: Option<DateTimeWithTimeZone>,
-    pub description: Option<String>,
-    pub deleted_at: Option<DateTimeWithTimeZone>,
-    pub user_id: Option<i32>,
-    pub is_default: Option<bool>,
-}
+pub async fn mark_completed(
+    Path(task_id): Path<i32>,
+    Extension(user): Extension<Model>,
+    State(db): State<DatabaseConnection>,
+) -> Result<(), AppError> {
+    let mut task = task_queries::find_task_by_id(&db, task_id, user.id)
+        .await?
+        .into_active_model();
 
-// # The order of extractors
-// - 'Method' and 'HeaderMap' don't consume the request body so they can put anywhere in the argument list (but before 'body').
-// - 'State' is also an extractor so it needs to be before 'body'.
-// - 'String' or 'JSON' consume the body, and thus must be the last extractor.
-// Note: Since parsing JSON requires consuming the request body, the Json extractor must be last if there are multiple extractors in a handler.
-pub async fn atomic_update_task(
-    Path(id): Path<i32>,
-    Extension(db): Extension<DatabaseConnection>,
-    Json(task): Json<RequestAtomicTask>,
-) -> Result<(), StatusCode> {
-    let update_task = tasks::ActiveModel {
-        id: Unchanged(id),
-        priority: Set(task.priority),
-        title: Set(task.title),
-        completed_at: Set(task.completed_at),
-        description: Set(task.description),
-        deleted_at: Set(task.deleted_at),
-        user_id: Set(task.user_id),
-        is_default: Set(task.is_default),
-    };
+    let now = Utc::now();
+    task.completed_at = Set(Some(now.into()));
 
-    update_task
-        .update(&db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    task_queries::save_active_task(&db, task).await?;
 
     Ok(())
 }
 
-#[allow(dead_code)]
-#[derive(Deserialize)]
-pub struct RequestPartialTask {
-    pub id: Option<i32>,
-    // - 'default': important for deserialization
-    // - 'skip_serializing_if': important for serialization. e.g. skip_serializing_if = "Option::is_none"
-    #[serde(default, with = "::serde_with::rust::double_option")]
-    pub priority: Option<Option<String>>,
-    pub title: Option<String>,
-    #[serde(default, with = "::serde_with::rust::double_option")]
-    pub completed_at: Option<Option<DateTimeWithTimeZone>>,
-    #[serde(default, with = "::serde_with::rust::double_option")]
-    pub description: Option<Option<String>>,
-    #[serde(default, with = "::serde_with::rust::double_option")]
-    pub deleted_at: Option<Option<DateTimeWithTimeZone>>,
-    #[serde(default, with = "::serde_with::rust::double_option")]
-    pub user_id: Option<Option<i32>>,
-    #[serde(default, with = "::serde_with::rust::double_option")]
-    pub is_default: Option<Option<bool>>,
+pub async fn mark_uncompleted(
+    Path(task_id): Path<i32>,
+    Extension(user): Extension<Model>,
+    State(db): State<DatabaseConnection>,
+) -> Result<(), AppError> {
+    let mut task = task_queries::find_task_by_id(&db, task_id, user.id)
+        .await?
+        .into_active_model();
+
+    task.completed_at = Set(None);
+
+    task_queries::save_active_task(&db, task).await?;
+
+    Ok(())
 }
 
 pub async fn partial_update_task(
-    Path(id): Path<i32>,
-    Extension(db): Extension<DatabaseConnection>,
-    Json(task): Json<RequestPartialTask>,
-) -> Result<(), StatusCode> {
-    let mut update_task = tasks::Entity::find_by_id(id)
-        .one(&db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?
+    Path(task_id): Path<i32>,
+    Extension(user): Extension<Model>,
+    State(db): State<DatabaseConnection>,
+    Json(request_task): Json<RequestTask>,
+) -> Result<(), AppError> {
+    let mut task = task_queries::find_task_by_id(&db, task_id, user.id)
+        .await?
         .into_active_model();
 
-    if let Some(priority) = task.priority {
-        update_task.priority = Set(priority);
-    }
-    if let Some(title) = task.title {
-        update_task.title = Set(title);
-    }
-    if let Some(completed_at) = task.completed_at {
-        update_task.completed_at = Set(completed_at);
-    }
-    if let Some(description) = task.description {
-        update_task.description = Set(description);
-    }
-    if let Some(deleted_at) = task.deleted_at {
-        update_task.deleted_at = Set(deleted_at);
-    }
-    if let Some(user_id) = task.user_id {
-        update_task.user_id = Set(user_id);
-    }
-    if let Some(is_default) = task.is_default {
-        update_task.is_default = Set(is_default);
+    if let Some(priority) = request_task.priority {
+        task.priority = Set(priority);
     }
 
-    update_task
-        .update(&db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    if let Some(title) = request_task.title {
+        task.title = Set(title);
+    }
+
+    if let Some(completed_at) = request_task.completed_at {
+        task.completed_at = Set(completed_at);
+    }
+
+    if let Some(description) = request_task.description {
+        task.description = Set(description);
+    }
+
+    task_queries::save_active_task(&db, task).await?;
 
     Ok(())
 }

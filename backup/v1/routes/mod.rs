@@ -1,0 +1,24 @@
+mod auth;
+mod example;
+mod tasks;
+
+use axum::{Extension, Router, http::Method};
+use sea_orm::DatabaseConnection;
+use tower_http::cors::{Any, CorsLayer};
+
+use crate::routes::{
+    auth::create_auth_routes, example::create_example_routes, tasks::create_task_routes,
+};
+
+pub fn create_routes(db: DatabaseConnection) -> Router {
+    let cors = CorsLayer::new()
+        .allow_methods([Method::GET, Method::POST])
+        .allow_origin(Any);
+
+    Router::new()
+        .nest("/example", create_example_routes())
+        .nest("/api", create_task_routes())
+        .merge(create_auth_routes())
+        .layer(Extension(db))
+        .layer(cors)
+}

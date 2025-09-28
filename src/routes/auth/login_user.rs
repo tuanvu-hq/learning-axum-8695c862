@@ -1,58 +1,38 @@
-use axum::{Extension, Json, http::StatusCode};
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait,
-    IntoActiveModel, QueryFilter,
+use axum::{Json, extract::State, http::StatusCode};
+use sea_orm::{ActiveValue::Set, DatabaseConnection, IntoActiveModel};
+
+use crate::{
+    common::app_error::AppError,
+    queries::user_queries::{find_by_username, save_active_user},
+    routes::auth::{RequestCreateUser, ResponseDataUser, ResponseUser},
+    utils::{hash::verify_password, jwt::create_token, token_wrapper::TokenWrapper},
 };
-use serde::{Deserialize, Serialize};
-
-use crate::{database::users, utils::jwt::create_token};
-
-#[allow(dead_code)]
-#[derive(Deserialize)]
-pub struct RequestLoginUser {
-    username: String,
-    password: String,
-}
-
-#[derive(Serialize)]
-pub struct ResponseLoginUser {
-    id: i32,
-    username: String,
-    token: String,
-}
 
 pub async fn login(
-    Extension(db): Extension<DatabaseConnection>,
-    Json(user): Json<RequestLoginUser>,
-) -> Result<Json<ResponseLoginUser>, StatusCode> {
-    let login_user = users::Entity::find()
-        .filter(users::Column::Username.eq(user.username))
-        .one(&db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+    State(db): State<DatabaseConnection>,
+    State(token_secret): State<TokenWrapper>,
+    Json(request_user): Json<RequestCreateUser>,
+) -> Result<Json<ResponseDataUser>, AppError> {
+    let user = find_by_username(&db, request_user.username).await?;
 
-    if !verify_password(user.password, &login_user.password)? {
-        return Err(StatusCode::UNAUTHORIZED);
+    if !verify_password(&request_user.password, &user.password)? {
+        return Err(AppError::new(
+            StatusCode::UNAUTHORIZED,
+            "incorrect username and/or password",
+        ));
     }
 
-    let new_token = create_token()?;
-    let mut user = login_user.into_active_model();
+    let token = create_token(&token_secret.0, user.username.clone())?;
 
-    user.token = Set(Some(new_token));
+    let mut user = user.into_active_model();
+    user.token = Set(Some(token));
 
-    let login_user = user
-        .save(&db)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    let user = save_active_user(&db, user).await?;
+    let response = ResponseUser {
+        id: user.id,
+        username: user.username,
+        token: user.token.unwrap(),
+    };
 
-    Ok(Json(ResponseLoginUser {
-        id: login_user.id.unwrap(),
-        username: login_user.username.unwrap(),
-        token: login_user.token.unwrap().unwrap(),
-    }))
-}
-
-fn verify_password(password: String, hash: &str) -> Result<bool, StatusCode> {
-    bcrypt::verify(password, hash).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+    Ok(Json(ResponseDataUser { data: response }))
 }

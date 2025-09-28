@@ -1,7 +1,7 @@
 # create task
 POST http://localhost:8080/api/tasks
 Content-Type: application/json
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwNjY5MjYsImlhdCI6MTc1OTA2Njg5Nn0.C3Wao4e8RpgFvYQgJtsCCeyyxP-KT-vF98A8wwjCDSw
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 
 {
     "priority": "A",
@@ -11,67 +11,46 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwNjY5M
 ###
 
 # get one task
-GET http://localhost:8080/api/tasks/4
+GET http://localhost:8080/api/tasks/15
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 ###
 
 # get all tasks
 GET http://localhost:8080/api/tasks
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 ###
 
 # get all task - filtered A
 GET http://localhost:8080/api/tasks?priority=A
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 ###
 
 # get all task - filtered B
 GET http://localhost:8080/api/tasks?priority=B
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 ###
 
 # get all task - filtered C
 GET http://localhost:8080/api/tasks?priority=C
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 ###
 
 # get all task - filtered empty
 GET http://localhost:8080/api/tasks?priority=
-###
-
-# atomic update one task
-PUT http://localhost:8080/api/tasks/4
-Content-Type: application/json
-
-{
-  "priority": "A",
-  "title": "This is a title",
-  "description": "This is a description"
-}
-###
-
-# atomic update one task
-PUT http://localhost:8080/api/tasks/4
-Content-Type: application/json
-
-{
-  "priority": "A",
-  "title": "This is a title"
-}
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 ###
 
 # partial update one task
 PATCH http://localhost:8080/api/tasks/4
 Content-Type: application/json
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 
 {
   "priority": "B"
 }
 ###
 
-# delete task - OK
-DELETE  http://localhost:8080/api/tasks/4
-###
-
-# delete task - NOT OK
-DELETE  http://localhost:8080/api/tasks/444
-###
-
 # soft delete task - OK
 DELETE  http://localhost:8080/api/tasks/5?soft=true
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 ###

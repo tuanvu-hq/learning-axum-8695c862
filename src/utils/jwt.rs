@@ -1,43 +1,50 @@
 use axum::http::StatusCode;
-use chrono::{Duration, Utc};
-use dotenvy_macro::dotenv;
+use chrono::Duration;
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize)]
+use crate::common::app_error::AppError;
+
+#[derive(Serialize, Deserialize)]
 struct Claims {
     exp: usize,
-    iat: usize,
+    username: String,
 }
 
-pub fn create_token() -> Result<String, StatusCode> {
-    let mut now = Utc::now();
-    let iat = now.timestamp() as usize;
-    let expires_in = Duration::seconds(30);
-
-    now += expires_in;
-
-    let exp = now.timestamp() as usize;
-    let claim = Claims { exp, iat };
-    let secret: &'static str = dotenv!("JWT_SECRET");
+pub fn create_token(secret: &str, username: String) -> Result<String, AppError> {
+    let now = chrono::Utc::now();
+    let expires_at = Duration::hours(1);
+    let expires_at = now + expires_at;
+    let exp = expires_at.timestamp() as usize;
+    let claims = Claims { exp, username };
+    let token_header = Header::default();
     let key = EncodingKey::from_secret(secret.as_bytes());
 
-    encode(&Header::default(), &claim, &key).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+    encode(&token_header, &claims, &key).map_err(|error| {
+        eprintln!("Error creating token: {:?}", error);
+
+        AppError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "There was an error, please try again later",
+        )
+    })
 }
 
-pub fn is_valid(token: &str) -> Result<bool, StatusCode> {
-    let secret: &'static str = dotenv!("JWT_SECRET");
+pub fn validate_token(secret: &str, token: &str) -> Result<bool, AppError> {
     let key = DecodingKey::from_secret(secret.as_bytes());
+    let validation = Validation::new(jsonwebtoken::Algorithm::HS256);
 
-    decode::<Claims>(
-        token,
-        &key,
-        &Validation::new(jsonwebtoken::Algorithm::HS256),
-    )
-    .map_err(|error| match error.kind() {
-        jsonwebtoken::errors::ErrorKind::ExpiredSignature => StatusCode::UNAUTHORIZED,
-        _ => StatusCode::INTERNAL_SERVER_ERROR,
-    })?;
-
-    Ok(true)
+    decode::<Claims>(token, &key, &validation)
+        .map_err(|error| match error.kind() {
+            jsonwebtoken::errors::ErrorKind::InvalidToken
+            | jsonwebtoken::errors::ErrorKind::InvalidSignature
+            | jsonwebtoken::errors::ErrorKind::ExpiredSignature => {
+                AppError::new(StatusCode::UNAUTHORIZED, "not authenticated!")
+            }
+            _ => {
+                eprintln!("Error validating token: {:?}", error);
+                AppError::new(StatusCode::INTERNAL_SERVER_ERROR, "Error validating token")
+            }
+        })
+        .map(|_| true)
 }

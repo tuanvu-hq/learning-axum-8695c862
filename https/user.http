@@ -3,22 +3,23 @@ POST http://localhost:8080/register
 Content-Type: application/json
 
 {
-    "username": "Bob 2",
+    "username": "Bob 1",
     "password": "bobo123456"
 }
 ###
 
 # login user
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIyMDEsInVzZXJuYW1lIjoiQm9iIDEifQ.Dv4DROVJQSLIlO0PfvUKAYZTY_QZgVpJ6jyhyeS8b-A
 POST http://localhost:8080/login
 Content-Type: application/json
 
 {
-    "username": "Bob 2",
+    "username": "Bob 1",
     "password": "bobo123456"
 }
 ###
 
 # logout user
 POST http://localhost:8080/logout
-Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwNjY5MjYsImlhdCI6MTc1OTA2Njg5Nn0.C3Wao4e8RpgFvYQgJtsCCeyyxP-KT-vF98A8wwjCDSw
+x-auth-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwODIwNzcsInVzZXJuYW1lIjoiQm9iIDEifQ.Wd3VO0YaTS4I_kVWDDDS3-yo3WSOyCaHLPTdEX4wBRY
 ###

@@ -1,83 +1,27 @@
-#![allow(unused_imports)]
-
+use crate::common::app_error::AppError;
+use crate::database::users::Model;
+use crate::queries::task_queries::{find_task_by_id, save_active_task};
 use axum::{
     Extension,
-    extract::{Path, Query},
-    http::StatusCode,
+    extract::{Path, State},
 };
-use sea_orm::{
-    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, EntityTrait,
-    IntoActiveModel, QueryFilter,
-};
-use serde::Deserialize;
+use chrono::Utc;
+use sea_orm::{DatabaseConnection, IntoActiveModel, Set};
 
-use crate::database::tasks;
+pub async fn soft_delete_task(
+    Extension(user): Extension<Model>,
+    State(db): State<DatabaseConnection>,
+    Path(task_id): Path<i32>,
+) -> Result<(), AppError> {
+    let mut task = find_task_by_id(&db, task_id, user.id)
+        .await?
+        .into_active_model();
 
-// # without soft delete
-// pub async fn delete_task(
-//     Path(id): Path<i32>,
-//     Extension(db): Extension<DatabaseConnection>,
-// ) -> Result<StatusCode, StatusCode> {
-//     // # Option 1
-//     // let task = tasks::Entity::find_by_id(id)
-//     //     .one(&db)
-//     //     .await
-//     //     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-//     //     .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?
-//     //     .into_active_model();
+    let now = Utc::now();
 
-//     // tasks::Entity::delete(task)
-//     //     .exec(&db)
-//     //     .await
-//     //     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    task.deleted_at = Set(Some(now.into()));
 
-//     // # Option 2
-//     // tasks::Entity::delete_many()
-//     //     .filter(tasks::Column::Id.eq(id))
-//     //     .exec(&db)
-//     //     .await
-//     //     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    save_active_task(&db, task).await?;
 
-//     // # Option 3
-//     tasks::Entity::delete_by_id(id)
-//         .exec(&db)
-//         .await
-//         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-//     Ok(StatusCode::NO_CONTENT)
-// }
-
-#[derive(Deserialize)]
-pub struct QueryParams {
-    soft: bool,
-}
-
-// # with soft delete
-pub async fn delete_task(
-    Path(id): Path<i32>,
-    Query(params): Query<QueryParams>,
-    Extension(db): Extension<DatabaseConnection>,
-) -> Result<StatusCode, StatusCode> {
-    if params.soft {
-        let mut delete_task = tasks::Entity::find_by_id(id)
-            .one(&db)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-            .ok_or(StatusCode::NOT_FOUND)?
-            .into_active_model();
-        let now = chrono::Utc::now();
-
-        delete_task.deleted_at = Set(Some(now.into()));
-        delete_task
-            .update(&db)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    } else {
-        tasks::Entity::delete_by_id(id)
-            .exec(&db)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    }
-
-    Ok(StatusCode::NO_CONTENT)
+    Ok(())
 }

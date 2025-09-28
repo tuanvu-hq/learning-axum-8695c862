@@ -1,18 +1,39 @@
-mod guard;
-mod login_user;
-mod logout_user;
-mod register_user;
+pub mod login_user;
+pub mod logout_user;
+pub mod register_user;
 
-use axum::{Router, middleware, routing::post};
+use axum::{Router, routing::post};
+use serde::{Deserialize, Serialize};
 
-use crate::routes::auth::{login_user::login, logout_user::logout, register_user::register};
+use crate::{
+    common::app_state::AppState,
+    routes::auth::{login_user::login, logout_user::logout, register_user::register},
+};
 
-pub use guard::guard_user;
+#[derive(Serialize, Deserialize)]
+pub struct ResponseDataUser {
+    data: ResponseUser,
+}
 
-pub fn create_auth_routes() -> Router {
+#[derive(Serialize, Deserialize)]
+pub struct ResponseUser {
+    id: i32,
+    username: String,
+    token: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RequestCreateUser {
+    username: String,
+    password: String,
+}
+
+pub fn create_auth_routes() -> Router<AppState> {
+    Router::new().route("/logout", post(logout))
+}
+
+pub fn create_non_auth_routes() -> Router<AppState> {
     Router::new()
-        .route("/logout", post(logout))
-        .route_layer(middleware::from_fn(guard_user))
         .route("/register", post(register))
         .route("/login", post(login))
 }

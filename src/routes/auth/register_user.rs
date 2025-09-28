@@ -1,44 +1,60 @@
-use axum::{Extension, Json, http::StatusCode};
-use sea_orm::{ActiveModelTrait, ActiveValue::Set, DatabaseConnection};
-use serde::{Deserialize, Serialize};
+use axum::{Json, extract::State};
+use sea_orm::{ActiveValue::Set, DatabaseConnection};
 
-use crate::{database::users, utils::jwt::create_token};
-
-#[derive(Deserialize)]
-pub struct RequestRegisterUser {
-    username: String,
-    password: String,
-}
-
-#[derive(Serialize)]
-pub struct ResponseRegisterUser {
-    id: i32,
-    username: String,
-    token: String,
-}
+use crate::{
+    common::app_error::AppError,
+    database::{tasks, users},
+    queries::{
+        task_queries::{get_default_tasks, save_active_task},
+        user_queries,
+    },
+    routes::auth::{RequestCreateUser, ResponseDataUser, ResponseUser},
+    utils::{hash::hash_password, jwt::create_token, token_wrapper::TokenWrapper},
+};
 
 pub async fn register(
-    Extension(db): Extension<DatabaseConnection>,
-    Json(user): Json<RequestRegisterUser>,
-) -> Result<Json<ResponseRegisterUser>, StatusCode> {
-    let token = create_token()?;
-    let register_user = users::ActiveModel {
-        username: Set(user.username),
-        password: Set(has_password(user.password)?), // !!!DEV-PURPOSE!!! calm down. plain-text password
-        token: Set(Some(token)),
+    State(db): State<DatabaseConnection>,
+    State(jwt_secret): State<TokenWrapper>,
+    Json(request_user): Json<RequestCreateUser>,
+) -> Result<Json<ResponseDataUser>, AppError> {
+    let mut new_user = users::ActiveModel {
         ..Default::default()
-    }
-    .save(&db)
-    .await
-    .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    };
+    new_user.username = Set(request_user.username.clone());
+    new_user.password = Set(hash_password(&request_user.password)?);
+    new_user.token = Set(Some(create_token(&jwt_secret.0, request_user.username)?));
+    let user = user_queries::save_active_user(&db, new_user).await?;
 
-    Ok(Json(ResponseRegisterUser {
-        id: register_user.id.unwrap(),             // unwrap ActiveValue<String>
-        username: register_user.username.unwrap(), // unwrap ActiveValue<String>
-        token: register_user.token.unwrap().unwrap(), // unwrap ActiveValue<Option<String>>
+    create_default_tasks_for_user(&db, &user).await?;
+
+    Ok(Json(ResponseDataUser {
+        data: ResponseUser {
+            id: user.id,
+            username: user.username,
+            token: user.token.unwrap(),
+        },
     }))
 }
 
-fn has_password(password: String) -> Result<String, StatusCode> {
-    bcrypt::hash(password, 14).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)
+async fn create_default_tasks_for_user(
+    db: &DatabaseConnection,
+    user: &users::Model,
+) -> Result<(), AppError> {
+    let default_tasks = get_default_tasks(db).await?;
+
+    for default_task in default_tasks {
+        let task = tasks::ActiveModel {
+            priority: Set(default_task.priority),
+            title: Set(default_task.title),
+            completed_at: Set(default_task.completed_at),
+            description: Set(default_task.description),
+            deleted_at: Set(default_task.deleted_at),
+            user_id: Set(Some(user.id)),
+            ..Default::default()
+        };
+
+        save_active_task(db, task).await?;
+    }
+
+    Ok(())
 }
