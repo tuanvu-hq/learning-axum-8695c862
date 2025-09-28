@@ -20,5 +20,5 @@ Content-Type: application/json
 
 # logout user
 POST http://localhost:8080/logout
-Authorization: Bearer as54dad465aff
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NTkwNjY5MjYsImlhdCI6MTc1OTA2Njg5Nn0.C3Wao4e8RpgFvYQgJtsCCeyyxP-KT-vF98A8wwjCDSw
 ###

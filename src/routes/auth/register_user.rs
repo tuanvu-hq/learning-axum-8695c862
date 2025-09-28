@@ -2,7 +2,7 @@ use axum::{Extension, Json, http::StatusCode};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, DatabaseConnection};
 use serde::{Deserialize, Serialize};
 
-use crate::database::users;
+use crate::{database::users, utils::jwt::create_token};
 
 #[derive(Deserialize)]
 pub struct RequestRegisterUser {
@@ -21,10 +21,11 @@ pub async fn register(
     Extension(db): Extension<DatabaseConnection>,
     Json(user): Json<RequestRegisterUser>,
 ) -> Result<Json<ResponseRegisterUser>, StatusCode> {
+    let token = create_token()?;
     let register_user = users::ActiveModel {
         username: Set(user.username),
         password: Set(has_password(user.password)?), // !!!DEV-PURPOSE!!! calm down. plain-text password
-        token: Set(Some("a6sd54g65sag4".to_owned())), // dev - temporary
+        token: Set(Some(token)),
         ..Default::default()
     }
     .save(&db)

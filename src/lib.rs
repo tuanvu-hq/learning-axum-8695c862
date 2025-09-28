@@ -1,6 +1,7 @@
 #[allow(unused_imports)]
 mod database;
 mod routes;
+mod utils;
 
 use sea_orm::{ConnectOptions, Database};
 use std::{net::SocketAddr, time::Duration};

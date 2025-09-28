@@ -5,7 +5,7 @@ use sea_orm::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::database::users;
+use crate::{database::users, utils::jwt::create_token};
 
 #[allow(dead_code)]
 #[derive(Deserialize)]
@@ -36,7 +36,7 @@ pub async fn login(
         return Err(StatusCode::UNAUTHORIZED);
     }
 
-    let new_token = "as54dad465aff".to_owned();
+    let new_token = create_token()?;
     let mut user = login_user.into_active_model();
 
     user.token = Set(Some(new_token));

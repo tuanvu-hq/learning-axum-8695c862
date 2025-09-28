@@ -7,7 +7,7 @@ use axum::{
 use axum_extra::headers::{Authorization, HeaderMapExt, authorization::Bearer};
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 
-use crate::database::users;
+use crate::{database::users, utils::jwt::is_valid};
 
 pub async fn guard_user(mut req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
     let token = req
@@ -21,11 +21,13 @@ pub async fn guard_user(mut req: Request<Body>, next: Next) -> Result<Response, 
         .get::<DatabaseConnection>()
         .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
     let user = users::Entity::find()
-        .filter(users::Column::Token.eq(Some(token)))
+        .filter(users::Column::Token.eq(Some(token.clone())))
         .one(db)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
         .ok_or(StatusCode::UNAUTHORIZED)?;
+
+    is_valid(&token)?;
 
     req.extensions_mut().insert(user);
 
